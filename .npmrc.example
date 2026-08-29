@@ -1,0 +1,11 @@
+# Consuming @juanmandev/hispashare-mcp from GitHub Packages.
+#
+# Copy to .npmrc (gitignored) — or add these lines to ~/.npmrc to use the
+# package from anywhere. GitHub Packages requires authentication even for
+# public packages, so a token is not optional.
+#
+# Token: a classic PAT with the `read:packages` scope
+# (https://github.com/settings/tokens). Export it as GITHUB_TOKEN rather than
+# pasting it here, so the file stays safe to read over someone's shoulder.
+@juanmandev:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}

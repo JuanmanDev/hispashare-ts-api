@@ -1,0 +1,46 @@
+# Secrets — never commit real credentials
+.env
+.env.*
+!.env.example
+.npmrc
+!.npmrc.example
+
+# Dependencies / build output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# VitePress
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# tsc output accidentally emitted next to the sources instead of dist/
+/src/**/*.js
+/scripts/*.js
+
+# Throwaway scraping scratch: saved HispaShare pages plus the one-off cheerio
+# scripts used to work out the selectors. Superseded by src/infra and scripts/.
+/dump.cjs
+/parse2.cjs
+/test-parse.cjs
+/test-fetch.mjs
+/test-daredevil.mjs
+/test-rick-morty.mjs
+/matrix.html
+/real-matrix.html
+/matrix_text.txt
+
+# Accidental `> nul` redirect on Windows (cmd device name, not a real file)
+/nul

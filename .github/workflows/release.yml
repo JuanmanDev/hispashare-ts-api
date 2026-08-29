@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Reuse the exact CI job so nothing ships that has not passed the suite.
+  verify:
+    uses: ./.github/workflows/ci.yml
+
+  npm:
+    name: publish to GitHub Packages
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # publishing to npm.pkg.github.com uses GITHUB_TOKEN
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          # Writes the registry line and the auth placeholder into ~/.npmrc.
+          registry-url: https://npm.pkg.github.com
+          scope: "@juanmandev"
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Check tag matches package version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(node -p 'require("./package.json").version')"
+          if [ "$tag" != "$pkg" ]; then
+            echo "Tag $tag does not match package.json version $pkg" >&2
+            exit 1
+          fi
+
+      # No --provenance: the GitHub Packages npm registry does not accept
+      # provenance attestations. The container image is attested in docker.yml.
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # The container image is built, pushed and attested by docker.yml, which the
+  # same `v*` tag triggers. Nothing to duplicate here.

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "hispashare": {
+      "type": "local",
+      "command": [
+        "node",
+        "--dns-result-order=ipv4first",
+        "--env-file=.env",
+        "dist/mcp/server.js"
+      ],
+      "enabled": true
+    },
+    "amule": {
+      "type": "remote",
+      "url": "http://192.168.2.3:3005/mcp",
+      "enabled": true
+    }
+  }
+}

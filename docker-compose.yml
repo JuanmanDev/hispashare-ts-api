@@ -1,0 +1,46 @@
+# hispashare-mcp over stdio.
+#
+# This is NOT a long-running service: an MCP server reads JSON-RPC from stdin and
+# exits when the client closes the pipe. So the useful command is `run`, not `up`:
+#
+#   docker compose run --rm -T hispashare-mcp
+#
+# `up` would start the container with no client attached to stdin, and it would
+# sit idle. The MCP client itself should be configured to invoke the `run`
+# command above (see docs/guide/deploy.md).
+services:
+  hispashare-mcp:
+    # Prefer the published image; comment out `image` and keep `build` to use
+    # your working tree instead.
+    image: ghcr.io/juanmandev/hispashare-ts-api:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hispashare-mcp
+    init: true
+
+    # Credentials. `env_file` reads ./.env (gitignored); the explicit
+    # `environment` block lets an already-exported shell variable win.
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      HISPASHARE_USERNAME: ${HISPASHARE_USERNAME:-}
+      HISPASHARE_PASSWORD: ${HISPASHARE_PASSWORD:-}
+      NODE_ENV: production
+
+    # stdin is the protocol channel; a TTY would corrupt the framing.
+    stdin_open: true
+    tty: false
+
+    restart: "no"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

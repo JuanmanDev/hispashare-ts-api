@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call: # so release.yml can gate on this exact job
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22, 24]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        # No HispaShare account needed: the suite must never hit the live site.
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify the built server starts and speaks MCP
+        # Dummy credentials: tools/list performs no upstream request.
+        env:
+          HISPASHARE_USERNAME: ci-placeholder
+          HISPASHARE_PASSWORD: ci-placeholder
+        run: node scripts/smoke-mcp.mjs
+
+  docker:
+    name: docker build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Validate docker-compose.yml
+        run: docker compose config --quiet
+
+      - name: Build image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: hispashare-mcp:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke-test the image over stdio
+        # Drives a real MCP handshake into the container's stdin and asserts
+        # both tools come back. Credentials are dummies on purpose.
+        run: node scripts/smoke-docker.mjs hispashare-mcp:ci
+
+      - name: Smoke-test the compose service
+        env:
+          HISPASHARE_USERNAME: ci-placeholder
+          HISPASHARE_PASSWORD: ci-placeholder
+        # `run -T` keeps stdin as a plain pipe; the image built above stands in
+        # for the not-yet-published one referenced by `image:`.
+        run: |
+          printf '%s\n' \
+            '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"ci","version":"0"}}}' \
+            '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
+            '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
+            | docker compose run --rm -T --build hispashare-mcp \
+            | tee /dev/stderr | grep -q search_hispashare

@@ -1,0 +1,80 @@
+{
+  "name": "@juanmandev/hispashare-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for HispaShare",
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "public"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "hispashare-mcp": "dist/mcp/server.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "start": "node dist/mcp/server.js",
+    "mcp": "npm run build && node dist/mcp/server.js",
+    "smoke": "npm run build && node scripts/smoke-mcp.mjs",
+    "docker:build": "docker build -t hispashare-mcp .",
+    "docker:smoke": "node scripts/smoke-docker.mjs",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "hispashare",
+    "ed2k",
+    "movies"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "^1.7.5",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "cheerio": "^1.2.0",
+    "fetch-cookie": "^3.2.0",
+    "tough-cookie": "^6.0.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/cheerio": "^0.22.35",
+    "@types/node": "^22.10.0",
+    "@types/tough-cookie": "^4.0.5",
+    "typescript": "^5.7.0",
+    "vitepress": "^1.5.0",
+    "vitest": "^4.1.10"
+  },
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JuanmanDev/hispashare-ts-api.git"
+  },
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/JuanmanDev/hispashare-ts-api/issues"
+  },
+  "homepage": "https://github.com/JuanmanDev/hispashare-ts-api#readme"
+}
