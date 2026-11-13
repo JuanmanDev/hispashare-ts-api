@@ -95,7 +95,13 @@ export async function handshake({ command, args = [], env = {}, timeoutMs = 20_0
   try {
     await done;
   } finally {
+    // Close our ends too: a child that outlives the kill (a docker CLI waiting on
+    // its container) must not keep this process alive through its open pipes.
+    child.stdin.end();
+    child.stdout.destroy();
+    child.stderr.destroy();
     child.kill();
+    child.unref();
   }
 
   const initialize = responses.get(1);

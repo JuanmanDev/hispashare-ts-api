@@ -24,6 +24,9 @@ try {
       "run",
       "-i",
       "--rm",
+      // tini as PID 1: node alone ignores the SIGTERM the kill below forwards,
+      // so the container (and the docker CLI holding our pipes) never exited.
+      "--init",
       "-e",
       "HISPASHARE_USERNAME=dummy",
       "-e",

@@ -51,6 +51,8 @@ jobs:
   docker:
     name: docker build
     runs-on: ubuntu-latest
+    # A hung smoke test once held the runner for the 6 h default.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
